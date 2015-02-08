@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- cloned from https://github.com/IronSummitMedia/startbootstrap-simple-sidebar -->
+<!-- Simple sidebar template -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="img/star.png" type="image/x-icon" />
+    <style>
+        .extraInfo{ background-color:white; border:black; padding:20px; width:220px;}
+        #map {height: 600px;}
+    </style>
+    <title>Simple Sidebar - Start Bootstrap Template</title>
+    <script src="js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="js/bootstrap.min.js"></script>
+    <script type="text/javascript"> 
+        var dreamerStats = $.getJSON('dreamers', function(dreamers){
+            console.log(dreamers);
+        });
+        alert(dreamerStats.test);
+        var states = ["al", "ak", "az", "ar", "ca", "co",  "ct", "de", "dc", "fl", "ga","hi", "id","il", "in", "ia", "ks", "ky", "la","me", "md","ma", "mi", "mn", "ms", "mo", "mt","ne", "nv","nh", "nj","nm", "ny","nc", "nd","oh", "ok","or", "pa", "ri","sc","sd", "tn","tx", "ut","vt", "va","wa", "wv","wi", "wy"];
+        var centroids = [[ 32.7,-86.6, 7],
+        [64.75,-152.5,4],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [37.7, -119.6,6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6],
+        [32.7, 86.6]];
+        var stateNum =  43
+        var geoData = {};
+        var finish_count = 0;
+        var info;
+        geoData['features'] = [];
+        geoData['type'] = 'FeatureCollection';
+        var map;
+        var geojson;
+        function onEachFeature(feature, layer) {
+            layer.on({
+                mouseover: highlightFeature,
+                mouseout: resetHighlight,
+                click: zoomToFeature
+            });
+        }
+        function highlightFeature(e) {
+            var layer = e.target;
+            layer.setStyle({
+                weight:5,
+                color: '#777',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+            if (!L.Browser.id && !L.Browser.opera) {
+                layer.bringToFront();
+            }
+            info.update(layer.feature.properties);
+        }
+        function resetHighlight(e) {
+            geojson.resetStyle(e.target);
+            info.update();
+        }
+        function getColor(d) {
+            return '#4444EE';
+        }
+        function style(feature) {
+            return {
+                fillColor: getColor(feature.properties.density),
+                weight:2,
+                opacity:1,
+                color:'white',
+                dashArray:'3',
+                fillOpacity:.7
+            };
+        }
+        function zoomToFeature(e) {
+            map.fitBounds(e.target.getBounds());
+        }
+        function makeMap() {
+            geojson = L.geoJson(geoData, {style: style, onEachFeature:onEachFeature}).addTo(map);
+        }
+        function reloadState() {
+            stateNum=$('#state-select').val();
+            showDistricts(stateNum-1);
+            map.setView([centroids[stateNum-1][0],centroids[stateNum-1][1]] , centroids[stateNum-1][2]);
+            map.removeLayer(geojson);
+            setTimeout(function() {
+                makeMap();
+            }, 2000);
+
+        }
+        function showDistricts(stateNum) {
+            var mapData = $.getJSON("http://gis.govtrack.us/boundaries/cd-2012/?limit=100000000000000&offset=0", function(data) { 
+                //L.geoJson(data).addTo(map);
+
+                for(i=0;i < data['meta']['total_count']; i++) {
+                    console.log(states[1][0]);
+                    if(data['objects'][i]['external_id'][0] == states[stateNum][0] && data['objects'][i]['external_id'][1] == states[stateNum][1]){
+                        console.log('texas! or tn');
+                    
+                        var feature = {};
+                        var properties = {};
+                        var geometry = {};
+                        feature["type"] = "Feature";
+                        feature['id'] = i + 1;
+                        properties['name'] = data['objects'][i]['external_id'];
+                        console.log(properties['name']);
+                        properties['density'] = 90;
+                        feature['properties'] = properties;
+                        //geometry['type'] = 'Polygon';
+                        geoData['features'].push(feature);
+
+                        $.getJSON("http://gis.govtrack.us/boundaries/cd-2012/".concat(data['objects'][i]['external_id'].toLowerCase()).concat("/shape").concat("?callback=?"), function(data1) {
+                            for(j=0; j < data['meta']['total_count']; j++) {
+                                if(geoData['features'][j]) {
+                                    if(this.url.split("/")[5] == geoData['features'][j]['properties']['name']){
+                                        geoData['features'][j]['geometry'] = data1;
+                                    }
+                                }
+
+                            }
+                            //L.geoJson(geoData).addTo(map);
+                        });
+                    }
+                    
+                }
+
+            });
+
+        }
+        $(document).ready( function() {
+            //map = L.map('map', 'jclifton44.l598kh1n').setView([38.4333, -98.583333], 4);
+            showDistricts(43);
+            map = L.map('map', 'jclifton44.l598kh1n').setView([31.4333, -98.583333], 6);
+            L.tileLayer('http://{s}.tiles.mapbox.com/v4/jclifton44.l598kh1n/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiamNsaWZ0b240NCIsImEiOiJqX1o5WlY4In0.bGaCe2bASSG3Cj2Hb7KI5Q', { maxZoom: 18} ).addTo(map);
+            info = L.control();
+            info.onAdd = function(map) {
+                this._div = L.DomUtil.create('div', 'extraInfo');
+                this.update();
+                return this._div;
+            }
+            info.update = function(properties) {
+                if(properties) {
+                    this._div.innerHTML = '<p><h4> DREAMers in <b>' + properties['name'].toUpperCase() + '</b></h4> </p> Hey'
+                } else {
+                    this._div.innerHTML = '<h4>Hover over a district</h4>';
+                }
+            }
+            info.addTo(map);
+            setTimeout(function() {
+                makeMap();
+            }, 4000);
+
+
+        });
+    </script>
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+
+    <!-- Custom CSS -->
+    <link href="css/simple-sidebar.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand">
+                    <a href="#">
+                        DREAM Act
+                    </a>
+                </li>
+                <li>
+                    <a href="#overview" onclick="">Overview</a><!-- onclick starts javascript function 'showOverview()'-->
+                </li>
+                <li>
+                    <a href="#demo" onclick="">National Demographics</a>
+                </li>
+                <li>
+                    <a href="#sign" onclick="">Sign Petition</a>
+                </li>
+
+            </ul>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" >
+            <div class="container-fluid" id="overview">
+                <div class="row">
+                    <div class="col-lg-12" >
+                        <h3>DREAM Act 2001</h3>
+                        <p>In 2001, Sen. Dick Durbin authored a bill that would allow illegal immigrants to maintain citizenship in the US under a few simple contengencies. If an immigrant had entered the United States before the age of 16, resided here for atleast 5 consecutive years, maintained good moral character, and obtained a GED or highschool diploma, they would qualify to obtain conditional permenant residencey. Republicans repeatedly have the denied the bill in Congress.</p>
+                        <h3>Deferred Action for Childhood Arrivals (DACA)</h3>
+                        <p>President Barrack Obama, through executive action, created DACA in June of 2013. Deferred Action for Childhood Arrivals is an immigrant releif program that allows citizenship under a few similar contengencies of the DREAM Act. The applicant must have entered the US before the age of 16, resided in the US since 2007, completed a GED or military services, and kept from any serious criminal activity. As of August 2014, Republicans voted in a bill that would effectivly nullify the president's executive action. This will cause millions, young and old alike, to be deported back to their respective nations.</p> 
+                        <h3>DREAM Act 2015</h3>
+                        Alternate versions of the DREAM Act have been passed in seperate  states across the US, the DREAM Act debate continues within Congress. Dick Durbin plans to speak on behalf of the dreamers every day this week in Congress. Help the DREAM Act move on to be passed at the federal level by signing a <a href="#petition">petition</a>. 
+                        <p></p> 
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid" id="demo">
+                <div class="row">
+                    <div class="col-lg-12" >
+                        
+                        <h3>Dreamers per Congressional District</h3>
+                        <select style="margin:10px" id="state-select" value="43" onchange="reloadState();">
+                            <option value="1">AL</option>
+                            <option value="2">AK</option>
+                            <option value="3">AZ</option>
+                            <option value="4">AR</option>
+                            <option value="5">CA</option>
+                            <option value="6">CO</option>
+                            <option value="7">CT</option>
+                            <option value="8">DE</option>
+                            <option value="9">FL</option>
+                            <option value="10">GA</option>
+                            <option value="11">HI</option>
+                            <option value="12">ID</option>
+                            <option value="13">IL</option>
+                            <option value="14">IN</option>
+                            <option value="15">IA</option>
+                            <option value="16">KS</option>
+                            <option value="17">KY</option>
+                            <option value="18">LA</option>
+                            <option value="19">ME</option>
+                            <option value="20">MD</option>
+                            <option value="21">MA</option>
+                            <option value="22">MI</option>
+                            <option value="23">MN</option>
+                            <option value="24">MS</option>
+                            <option value="25">MO</option>
+                            <option value="26">MT</option>
+                            <option value="27">NE</option>
+                            <option value="28">NV</option>
+                            <option value="29">NH</option>
+                            <option value="30">NJ</option>
+                            <option value="31">NM</option>
+                            <option value="32">NY</option>
+                            <option value="33">NC</option>
+                            <option value="34">ND</option>
+                            <option value="35">OH</option>
+                            <option value="36">OK</option>
+                            <option value="37">OR</option>
+                            <option value="38">PA</option>
+                            <option value="39">RI</option>
+                            <option value="40">SC</option>
+                            <option value="41">SD</option>
+                            <option value="42">TN</option>
+                            <option value="43" selected="selected">TX</option>
+                            <option value="44">UT</option>
+                            <option value="45">VT</option>
+                            <option value="46">VA</option>
+                            <option value="47">WA</option>
+                            <option value="48">WV</option>
+                            <option value="49">WI</option>
+                            <option value="50">WY</option>
+                        </select>
+                        <div id="map"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid" id="petition">
+                <div class="row">
+                    <div class="col-lg-12" >
+                        <br>
+                        PETITION
+                        <br>
+                        <br>
+                        <br>
+                        <br>
+                        <h3>PETITION</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- jQuery -->
+
+
+    <!-- Menu Toggle Script -->
+    <script>
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+    </script>
+
+</body>
+
+</html>
