@@ -12,7 +12,18 @@
     <link rel="icon" href="img/star.png" type="image/x-icon" />
     <style>
         .extraInfo{ background-color:white; border:black; padding:20px; width:220px; border:1px solid black;}
-
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        .info h4 {
+            margin: 0 0 5px;
+            color: #777;
+        }
         #map {height: 600px;}
     </style>
     <title>Simple Sidebar - Start Bootstrap Template</title>
